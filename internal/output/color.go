@@ -11,26 +11,22 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
-package main
+package output
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/fatih/color"
-	"knative.dev/kn-plugin-trace/internal/root"
-
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
-func main() {
-	err := root.NewRootCommand().Execute()
-	if err != nil {
-		if err.Error() != "subcommand is required" {
-			color.New(color.FgRed).Fprintln(os.Stderr, "FAILED")
-			fmt.Fprintln(os.Stderr, err)
-		}
-		os.Exit(1)
-	}
+func Checkmark() {
+	color.New(color.FgGreen).PrintFunc()("✓ ")
+}
+
+func Error() {
+	color.New(color.FgRed).PrintFunc()("✗ ")
+}
+
+func Warning() {
+	color.New(color.FgYellow).PrintFunc()("⚠ ")
 }

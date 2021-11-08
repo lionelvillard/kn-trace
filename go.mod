@@ -3,6 +3,7 @@ module knative.dev/kn-plugin-trace
 go 1.15
 
 require (
+	github.com/fatih/color v1.7.0
 	github.com/openzipkin/zipkin-go v0.3.0
 	github.com/spf13/cobra v1.2.1
 	gotest.tools/v3 v3.0.3

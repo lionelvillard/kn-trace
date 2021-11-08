@@ -12,40 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package show
+package config
 
 import (
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
+	"knative.dev/kn-plugin-trace/internal/output"
 	"knative.dev/kn-plugin-trace/pkg/zipkin"
 
 	"knative.dev/client/pkg/kn/commands"
-
 	"knative.dev/kn-plugin-trace/pkg/config"
 )
 
-type showFlags struct {
-}
+// NewViewCommand implements 'kn trace config info' command
+func NewViewCommand(p *commands.KnParams) *cobra.Command {
 
-func (c *showFlags) addFlags(cmd *cobra.Command) {
-
-}
-
-// NewShowCommand is the command for showing traces
-func NewShowCommand(p *commands.KnParams) *cobra.Command {
-	var showCmd = &cobra.Command{
-		Use:   "show",
-		Short: "Show traces",
-
+	cmd := &cobra.Command{
+		Use:   "view",
+		Short: "View the current tracing configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			restcfg, err := p.RestConfig()
 			if err != nil {
 				return err
 			}
-
-			// Read Tracing configuration
 
 			kubeclient, err := kubernetes.NewForConfig(restcfg)
 			if err != nil {
@@ -57,42 +48,43 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			if err := config.Validate(cfg); err != nil {
-				return err
+			if cfg.Backend == "zipkin" || cfg.Backend == "none" {
+				output.Checkmark()
+			} else {
+				output.Error()
 			}
 
-			// Create connection to Zipkin
-			connection, err := zipkin.Connect(cfg.ZipkinEndpoint, restcfg)
-			if err != nil {
-				return err
-			}
+			fmt.Printf("backend: %s\n", cfg.Backend)
 
-			// Get all traces
-			services, err := connection.Services()
-			if err != nil {
-				return err
-			}
+			if cfg.Backend == "zipkin" {
+				if cfg.ZipkinEndpoint == "" {
+					output.Error()
+				} else {
+					output.Checkmark()
+					fmt.Printf("zipkinEndpoint: %s\n", cfg.ZipkinEndpoint)
 
-			for _, svc := range services {
-				spans, err := connection.Spans(svc)
-
-				if err != nil {
-					return err
-				}
-
-				for _, span1 := range spans {
-					for _, span := range span1 {
-						// Just show cloudevents
-						if span.Name == "cloudevents.client" {
-							fmt.Printf("%s %s %s\n", span.Tags["cloudevents.source"], span.Tags["cloudevents.id"], span.Tags["cloudevents.type"])
-						}
+					if _, err := zipkin.Connect(cfg.ZipkinEndpoint, restcfg); err == nil {
+						output.Checkmark()
+						fmt.Println("Reachable")
+					} else {
+						output.Error()
+						fmt.Println("Unreachable")
 					}
 				}
 			}
 
+			if cfg.Debug == false {
+				output.Warning()
+				fmt.Printf("debug: %t (only some traces will be displayed when running kn trace show)\n", cfg.Debug)
+			} else {
+				output.Checkmark()
+			}
+
+			output.Checkmark()
+			fmt.Printf("sample-rate: %f\n", cfg.SampleRate)
 			return nil
 		},
 	}
 
-	return showCmd
+	return cmd
 }

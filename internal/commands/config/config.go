@@ -29,6 +29,7 @@ func NewConfigCommand(p *commands.KnParams) *cobra.Command {
 
 	configCmd.AddCommand(NewCreateCommand(p))
 	configCmd.AddCommand(NewUpdateCommand(p))
+	configCmd.AddCommand(NewViewCommand(p))
 
 	return configCmd
 }
