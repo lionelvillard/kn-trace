@@ -8,7 +8,7 @@ kn-plugin-trace is a plugin of the Knative Client, to easily manage traces
 
 ## Building from Source
 
-You must [set up your development environment](https://github.com/knative/client/blob/master/docs/DEVELOPMENT.md#prerequisites) before you build `kn-plugin-quickstart`.
+You must [set up your development environment](https://github.com/knative/client/blob/master/docs/DEVELOPMENT.md#prerequisites) before you build `kn-plugin-trace`.
 
 Once you've set up your development environment, you can build the plugin by running the following commands:
 
