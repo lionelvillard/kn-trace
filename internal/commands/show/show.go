@@ -16,6 +16,7 @@ package show
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
@@ -27,14 +28,17 @@ import (
 )
 
 type showFlags struct {
+	follow bool
 }
 
 func (c *showFlags) addFlags(cmd *cobra.Command) {
-
+	cmd.Flags().BoolVarP(&c.follow, "follow", "f", false, "whether the traces should be streamed")
 }
 
 // NewShowCommand is the command for showing traces
 func NewShowCommand(p *commands.KnParams) *cobra.Command {
+	var showflags showFlags
+
 	var showCmd = &cobra.Command{
 		Use:   "show",
 		Short: "Show traces",
@@ -67,32 +71,59 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 				return err
 			}
 
-			// Get all traces
-			services, err := connection.Services()
-			if err != nil {
-				return err
-			}
+			since := time.UnixMilli(0)
+			for {
+				now := time.Now()
 
-			for _, svc := range services {
-				spans, err := connection.Spans(svc)
-
+				err := showSpans(connection, now, since)
 				if err != nil {
 					return err
 				}
 
-				for _, span1 := range spans {
-					for _, span := range span1 {
-						// Just show cloudevents
-						if span.Name == "cloudevents.client" {
-							fmt.Printf("%s %s %s\n", span.Tags["cloudevents.source"], span.Tags["cloudevents.id"], span.Tags["cloudevents.type"])
-						}
-					}
+				if !showflags.follow {
+					return nil
 				}
+
+				time.Sleep(1 * time.Second)
+				since = now
 			}
 
 			return nil
+
 		},
 	}
 
+	showflags.addFlags(showCmd)
+
 	return showCmd
+}
+
+func showSpans(connection *zipkin.Connection, now time.Time, since time.Time) error {
+	endTs := now
+	lookback := endTs.Sub(since).Milliseconds()
+
+	// Get all traces
+	services, err := connection.Services()
+	if err != nil {
+		return err
+	}
+
+	for _, svc := range services {
+		spans, err := connection.Spans(svc, endTs.UnixMilli(), lookback)
+
+		if err != nil {
+			return err
+		}
+
+		for _, span1 := range spans {
+			for _, span := range span1 {
+				// Just show cloudevents
+				if span.Name == "cloudevents.client" {
+					fmt.Printf("%s %s %s\n", span.Tags["cloudevents.source"], span.Tags["cloudevents.id"], span.Tags["cloudevents.type"])
+				}
+			}
+		}
+	}
+	return nil
+
 }

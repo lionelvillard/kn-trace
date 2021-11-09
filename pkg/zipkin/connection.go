@@ -81,8 +81,8 @@ func (c *Connection) Services() (ServicesResponse, error) {
 	return services, nil
 }
 
-func (c *Connection) Spans(serviceName string) ([][]model.SpanModel, error) {
-	traces, err := c.proxy.Get(c.svcName, c.svcNamespace, fmt.Sprintf("api/v2/traces?serviceName=%s", serviceName))
+func (c *Connection) Spans(serviceName string, endTs, lookback int64) ([][]model.SpanModel, error) {
+	traces, err := c.proxy.Get(c.svcName, c.svcNamespace, fmt.Sprintf("api/v2/traces?serviceName=%s&lookback=%d&endTs=%d&limit=200", serviceName, lookback, endTs))
 
 	if err != nil {
 		return nil, err
