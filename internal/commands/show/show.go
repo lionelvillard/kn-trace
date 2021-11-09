@@ -28,11 +28,13 @@ import (
 )
 
 type showFlags struct {
-	follow bool
+	follow  bool
+	verbose bool
 }
 
 func (c *showFlags) addFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVarP(&c.follow, "follow", "f", false, "whether the traces should be streamed")
+	cmd.Flags().BoolVarP(&c.verbose, "verbose", "v", false, "whether to show traces details")
 }
 
 // NewShowCommand is the command for showing traces
@@ -75,7 +77,7 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 			for {
 				now := time.Now()
 
-				err := showSpans(connection, now, since)
+				err := showSpans(connection, now, since, showflags.verbose)
 				if err != nil {
 					return err
 				}
@@ -98,7 +100,7 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 	return showCmd
 }
 
-func showSpans(connection *zipkin.Connection, now time.Time, since time.Time) error {
+func showSpans(connection *zipkin.Connection, now time.Time, since time.Time, verbose bool) error {
 	endTs := now
 	lookback := endTs.Sub(since).Milliseconds()
 
@@ -120,6 +122,24 @@ func showSpans(connection *zipkin.Connection, now time.Time, since time.Time) er
 				// Just show cloudevents
 				if span.Name == "cloudevents.client" {
 					fmt.Printf("%s %s %s\n", span.Tags["cloudevents.source"], span.Tags["cloudevents.id"], span.Tags["cloudevents.type"])
+
+					if verbose {
+						fmt.Printf("  %s %s %s\n", span.Timestamp, span.Name, span.ID.String())
+						if len(span.Annotations) > 0 {
+							fmt.Println("  annotations:")
+							for _, annotation := range span.Annotations {
+								fmt.Printf("    %s\n", annotation)
+							}
+						}
+						if len(span.Tags) > 0 {
+							fmt.Println("  tags:")
+							for key, value := range span.Tags {
+								fmt.Printf("    %s=%s\n", key, value)
+							}
+						}
+
+					}
+
 				}
 			}
 		}
