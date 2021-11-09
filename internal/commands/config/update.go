@@ -51,7 +51,7 @@ func NewUpdateCommand(p *commands.KnParams) *cobra.Command {
 
 			cfg, err := p.RestConfig()
 			if err != nil {
-				return fmt.Errorf("failed to update tracing configuration: %w", err)
+				return err
 			}
 
 			client, err := kubernetes.NewForConfig(cfg)

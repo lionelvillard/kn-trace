@@ -27,7 +27,7 @@ func NewConfigCommand(p *commands.KnParams) *cobra.Command {
 		Short: "Manage tracing configuration",
 	}
 
-	configCmd.AddCommand(NewCreateCommand(p))
+	configCmd.AddCommand(NewEnableCommand(p))
 	configCmd.AddCommand(NewUpdateCommand(p))
 	configCmd.AddCommand(NewViewCommand(p))
 
