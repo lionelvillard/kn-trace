@@ -76,7 +76,7 @@ func NewUpdateCommand(p *commands.KnParams) *cobra.Command {
 				}
 			}
 
-			setDebug := cmd.Flags().Changed("debug")
+			setDebug := cmd.Flags().Changed("debug") || cmd.Flags().Changed("no-debug")
 			updated := false
 
 			if setDebug {

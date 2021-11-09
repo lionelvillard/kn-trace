@@ -820,7 +820,6 @@ knative.dev/pkg/signals
 knative.dev/pkg/system
 knative.dev/pkg/tracing/config
 knative.dev/pkg/tracker
-knative.dev/pkg/webhook/json
 # knative.dev/serving v0.27.1-0.20211104011508-782db02f55f6
 knative.dev/serving/pkg/apis/autoscaling
 knative.dev/serving/pkg/apis/autoscaling/v1alpha1

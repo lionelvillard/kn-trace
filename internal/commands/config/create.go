@@ -32,7 +32,7 @@ type configCreateFlags struct {
 }
 
 func (c *configCreateFlags) addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&c.template, "template", "-t", "zipkin", "tracing configuration template")
+	cmd.Flags().StringVarP(&c.template, "template", "t", "zipkin", "tracing configuration template")
 	cobra.MarkFlagRequired(cmd.Flags(), "template")
 }
 
@@ -52,6 +52,8 @@ func NewCreateCommand(p *commands.KnParams) *cobra.Command {
 			}
 		},
 	}
+
+	createFlags.addFlags(cmd)
 
 	return cmd
 }

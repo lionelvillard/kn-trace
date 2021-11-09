@@ -78,6 +78,7 @@ func NewViewCommand(p *commands.KnParams) *cobra.Command {
 				fmt.Printf("debug: %t (only some traces will be displayed when running kn trace show)\n", cfg.Debug)
 			} else {
 				output.Checkmark()
+				fmt.Printf("debug: %t\n", cfg.Debug)
 			}
 
 			output.Checkmark()

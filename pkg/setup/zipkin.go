@@ -36,19 +36,19 @@ const (
 func Zipkin(ctx context.Context, p *commands.KnParams) error {
 	cfg, err := p.RestConfig()
 	if err != nil {
-		return fmt.Errorf("failed to setup Zipkin: %w", err)
+		return err
 	}
 
 	client, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
-		return fmt.Errorf("failed to setup Zipkin: %w", err)
+		return err
 	}
 
 	// TODO: alternate eventing installation namespace
 	cm, err := client.CoreV1().ConfigMaps("knative-eventing").Get(ctx, "config-tracing", metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return fmt.Errorf("failed to setup Zipkin: %w", err)
+			return err
 		}
 
 		// knative eventing hasn't been installed properly.
@@ -94,7 +94,13 @@ func Zipkin(ctx context.Context, p *commands.KnParams) error {
 
 	if updated {
 		_, err = client.CoreV1().ConfigMaps("knative-eventing").Update(ctx, cm, metav1.UpdateOptions{})
-		return err
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("tracing configuration successfully created")
+	} else {
+		fmt.Println("tracing configuration unchanged")
 	}
 
 	return nil
