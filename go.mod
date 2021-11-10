@@ -1,6 +1,6 @@
 module knative.dev/kn-plugin-trace
 
-go 1.15
+go 1.17
 
 require (
 	github.com/fatih/color v1.7.0
