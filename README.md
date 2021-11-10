@@ -37,3 +37,9 @@ Flags:
 
 Use "kn-trace [command] --help" for more information about a command.
 ```
+
+## Main features
+
+- easily enable and disable tracing
+- auto-resolve zipkin endpoint (support in-cluster zipkin and opentelemetry)
+
