@@ -63,7 +63,7 @@ func NewViewCommand(p *commands.KnParams) *cobra.Command {
 					output.Checkmark()
 					fmt.Printf("zipkinEndpoint: %s\n", cfg.ZipkinEndpoint)
 
-					if _, err := zipkin.Connect(cfg.ZipkinEndpoint, restcfg); err == nil {
+					if _, err := zipkin.Connect(cmd.Context(), cfg.ZipkinEndpoint, restcfg); err == nil {
 						output.Checkmark()
 						fmt.Println("Reachable")
 					} else {

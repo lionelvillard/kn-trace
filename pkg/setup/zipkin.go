@@ -82,7 +82,7 @@ func Zipkin(ctx context.Context, p *commands.KnParams) error {
 		updated = true
 	} else {
 		// TODO: Check endpoint is a real zipkin
-		// opentelemetry support receiving zipkin span by does not support queries
+		// opentelemetry support receiving zipkin span but does not support queries
 
 	}
 

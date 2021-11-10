@@ -15,6 +15,7 @@
 package zipkin
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/openzipkin/zipkin-go/model"
 	"k8s.io/client-go/rest"
+	"knative.dev/kn-plugin-trace/pkg/otel"
 	"knative.dev/kn-plugin-trace/pkg/proxy"
 )
 
@@ -33,7 +35,20 @@ type Connection struct {
 	svcNamespace string
 }
 
-func Connect(endpoint string, restcfg *rest.Config) (*Connection, error) {
+func Connect(ctx context.Context, endpoint string, restcfg *rest.Config) (*Connection, error) {
+	if c, err := DirectConnect(endpoint, restcfg); err == nil {
+		return c, nil
+	}
+
+	// Try connecting via OpenTelemetry
+	endpoint, err := otel.ResolveZipkin(ctx, endpoint, restcfg)
+	if err != nil {
+		return nil, err
+	}
+	return DirectConnect(endpoint, restcfg)
+}
+
+func DirectConnect(endpoint string, restcfg *rest.Config) (*Connection, error) {
 	url, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err

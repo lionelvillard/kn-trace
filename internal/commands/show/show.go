@@ -68,7 +68,7 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 			}
 
 			// Create connection to Zipkin
-			connection, err := zipkin.Connect(cfg.ZipkinEndpoint, restcfg)
+			connection, err := zipkin.Connect(cmd.Context(), cfg.ZipkinEndpoint, restcfg)
 			if err != nil {
 				return err
 			}
@@ -124,7 +124,17 @@ func showSpans(connection *zipkin.Connection, now time.Time, since time.Time, ve
 					fmt.Printf("%s %s %s\n", span.Tags["cloudevents.source"], span.Tags["cloudevents.id"], span.Tags["cloudevents.type"])
 
 					if verbose {
+						if span.LocalEndpoint != nil {
+							fmt.Printf("  %s\n", span.LocalEndpoint.ServiceName)
+
+						}
+
+						if span.RemoteEndpoint != nil {
+							fmt.Printf("  %s\n", span.RemoteEndpoint.ServiceName)
+						}
+
 						fmt.Printf("  %s %s %s\n", span.Timestamp, span.Name, span.ID.String())
+
 						if len(span.Annotations) > 0 {
 							fmt.Println("  annotations:")
 							for _, annotation := range span.Annotations {
