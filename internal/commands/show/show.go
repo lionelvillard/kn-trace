@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/openzipkin/zipkin-go/model"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/kubernetes"
 	"knative.dev/kn-plugin-trace/pkg/zipkin"
@@ -30,11 +31,13 @@ import (
 type showFlags struct {
 	follow  bool
 	verbose bool
+	all     bool
 }
 
 func (c *showFlags) addFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVarP(&c.follow, "follow", "f", false, "whether the traces should be streamed")
-	cmd.Flags().BoolVarP(&c.verbose, "verbose", "v", false, "whether to show traces details")
+	cmd.Flags().BoolVarP(&c.follow, "follow", "f", false, "stream traces")
+	cmd.Flags().BoolVarP(&c.verbose, "verbose", "v", false, "show all traces data")
+	cmd.Flags().BoolVarP(&c.all, "all", "a", false, "show non-cloudevents traces")
 }
 
 // NewShowCommand is the command for showing traces
@@ -77,7 +80,7 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 			for {
 				now := time.Now()
 
-				err := showSpans(connection, now, since, showflags.verbose)
+				err := showSpans(connection, now, since, showflags.verbose, showflags.all)
 				if err != nil {
 					return err
 				}
@@ -100,7 +103,7 @@ func NewShowCommand(p *commands.KnParams) *cobra.Command {
 	return showCmd
 }
 
-func showSpans(connection *zipkin.Connection, now time.Time, since time.Time, verbose bool) error {
+func showSpans(connection *zipkin.Connection, now time.Time, since time.Time, verbose bool, all bool) error {
 	endTs := now
 	lookback := endTs.Sub(since).Milliseconds()
 
@@ -119,8 +122,7 @@ func showSpans(connection *zipkin.Connection, now time.Time, since time.Time, ve
 
 		for _, span1 := range spans {
 			for _, span := range span1 {
-				// Just show cloudevents
-				if span.Name == "cloudevents.client" {
+				if all || hasCloudEventTagId(span) {
 					fmt.Printf("%s %s %s\n", span.Tags["cloudevents.source"], span.Tags["cloudevents.id"], span.Tags["cloudevents.type"])
 
 					if verbose {
@@ -155,5 +157,13 @@ func showSpans(connection *zipkin.Connection, now time.Time, since time.Time, ve
 		}
 	}
 	return nil
+}
 
+func hasCloudEventTagId(span model.SpanModel) bool {
+	for key := range span.Tags {
+		if key == "cloudevents.id" {
+			return true
+		}
+	}
+	return false
 }
